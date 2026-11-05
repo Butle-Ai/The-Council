@@ -11,6 +11,8 @@ import remarkGfm from "remark-gfm";
 import { Gavel, PlayCircle } from "lucide-react";
 import SeatCard, { type Status } from "@/components/SeatCard";
 import VerdictBanner from "@/components/VerdictBanner";
+import Arena, { type Phase } from "@/components/Arena";
+import PixelAvatar from "@/components/PixelAvatar";
 import { SEAT_INFO, type SeatId } from "@/lib/seats";
 import { seatScore, parseVerdict } from "@/lib/parse";
 import example from "@/lib/example.json";
@@ -112,6 +114,16 @@ export default function Council() {
   const selectedSeat = SEAT_INFO.find((s) => s.id === selected);
   const selectedText = selected ? texts[selected] : undefined;
 
+  // Which scene the arena should show.
+  const phase: Phase =
+    status.judge === "done"
+      ? "done"
+      : status.judge === "thinking"
+        ? "judging"
+        : ARGUING.some((s) => status[s] === "thinking")
+          ? "arguing"
+          : "idle";
+
   return (
     <>
       <form onSubmit={handleSubmit} className="idea-card">
@@ -145,6 +157,13 @@ export default function Council() {
 
       {error && <p className="error">{error}</p>}
 
+      <Arena
+        phase={phase}
+        bottomLine={verdict?.bottomLine ?? null}
+        canOpen={(seat) => status[seat] === "done"}
+        onOpen={openSeat}
+      />
+
       {verdict && <VerdictBanner verdict={verdict} onRead={() => openSeat("judge")} />}
       {isExample && <p className="muted center">This is a saved example, so it didn&apos;t use any API credits.</p>}
 
@@ -173,7 +192,7 @@ export default function Council() {
         <article ref={readerRef} className="reader" style={{ "--seat": selectedSeat.color } as React.CSSProperties}>
           <header>
             <span className="seat-icon">
-              <selectedSeat.Icon size={22} strokeWidth={2.2} />
+              <PixelAvatar seat={selectedSeat.id} size={44} />
             </span>
             <div>
               <h2>{selectedSeat.name}</h2>

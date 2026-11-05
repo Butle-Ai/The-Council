@@ -13,13 +13,7 @@ export default function Home() {
         </p>
       </header>
       <Council />
-      <footer className="footer">
-        Inspired by Andrej Karpathy&apos;s{" "}
-        <a href="https://github.com/karpathy/llm-council" target="_blank" rel="noreferrer">
-          LLM Council
-        </a>
-        . Powered by Claude.
-      </footer>
+      <footer className="footer">Powered by Claude</footer>
     </main>
   );
 }

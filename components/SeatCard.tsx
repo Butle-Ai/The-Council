@@ -3,6 +3,7 @@
 // done) and its score, and you can click it to read what that seat said.
 
 import { Check, AlertTriangle } from "lucide-react";
+import PixelAvatar from "@/components/PixelAvatar";
 import type { SeatInfo } from "@/lib/seats";
 import type { SeatScore } from "@/lib/parse";
 
@@ -25,7 +26,6 @@ type Props = {
 };
 
 export default function SeatCard({ seat, status, score, selected, onSelect }: Props) {
-  const { Icon } = seat;
   return (
     <button
       type="button"
@@ -38,7 +38,7 @@ export default function SeatCard({ seat, status, score, selected, onSelect }: Pr
     >
       <div className="seat-top">
         <span className="seat-icon">
-          <Icon size={22} strokeWidth={2.2} />
+          <PixelAvatar seat={seat.id} size={40} />
         </span>
         {status === "done" && score && (
           <span className="seat-score" title={score.label}>
