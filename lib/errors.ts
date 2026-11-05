@@ -4,24 +4,27 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { MissingKeyError } from "@/lib/council";
 
-export function errorResponse(error: unknown): Response {
-  if (error instanceof MissingKeyError) {
-    return Response.json({ error: error.message }, { status: 500 });
-  }
+// Work out a friendly message (and HTTP status code) for any error.
+export function friendlyError(error: unknown): { message: string; status: number } {
+  if (error instanceof MissingKeyError) return { message: error.message, status: 500 };
   if (error instanceof Anthropic.AuthenticationError) {
-    return Response.json({ error: "Your API key was rejected. Make sure the full key is in .env.local." }, { status: 500 });
+    return { message: "Your API key was rejected. Make sure the full key is in .env.local.", status: 500 };
   }
   if (error instanceof Anthropic.RateLimitError) {
-    return Response.json({ error: "Too many requests. Wait a minute and try again." }, { status: 429 });
+    return { message: "Too many requests. Wait a minute and try again.", status: 429 };
   }
   if (error instanceof Anthropic.BadRequestError && /credit balance/i.test(error.message)) {
-    return Response.json({ error: "Your Anthropic account is out of credits. Add some in the console." }, { status: 402 });
+    return { message: "Your Anthropic account is out of credits. Add some in the console.", status: 402 };
   }
   if (error instanceof Anthropic.APIError) {
-    return Response.json({ error: `Claude API error (${error.status}): ${error.message}` }, { status: 502 });
+    return { message: `Claude API error (${error.status}): ${error.message}`, status: 502 };
   }
-  const message = error instanceof Error ? error.message : "Something went wrong.";
-  return Response.json({ error: message }, { status: 500 });
+  return { message: error instanceof Error ? error.message : "Something went wrong.", status: 500 };
+}
+
+export function errorResponse(error: unknown): Response {
+  const { message, status } = friendlyError(error);
+  return Response.json({ error: message }, { status });
 }
 
 // Shared check for the idea text, so both routes reject bad input the same way.

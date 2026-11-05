@@ -35,7 +35,7 @@ We're building this one step at a time.
 - [x] **Step 3: The idea form.** A text box on the homepage that sends your idea and shows the answer.
 - [x] **Step 4: The full council.** Believer, Skeptic and Investor run at the same time, then the Judge.
 - [ ] **Step 5: Rebuttal round.** Each seat reads the others and fires back before the Judge rules.
-- [ ] **Step 6: Live streaming.** Watch each seat "type" its argument live instead of waiting.
+- [x] **Step 6: Live streaming.** Watch each seat "type" its argument live instead of waiting.
 - [x] **Step 7: Redesign and verdict card.** Pixel-art characters for each seat that clash in an arena while they argue, a pixel font, and a starry background. Also: clickable seat cards with scores, a big verdict banner, and a "See an example" button that loads a saved council (no API credits used).
 - [ ] **Step 8: Save and share.** Keep past verdicts and share a link to one.
 - [ ] **Step 9: Deploy.** Put it online (Vercel) so anyone can use it.
@@ -71,6 +71,7 @@ app/api/judge/    backend route: takes all three arguments, returns the verdict
 components/       pieces of the page (Council, Arena, SeatCard, VerdictBanner, PixelAvatar)
 lib/council.ts    the code that talks to Claude
 lib/errors.ts     turns errors into plain-English messages
+lib/live.ts       streams each seat's answer to the browser live, with keep-alive pings
 lib/parse.ts      pulls scores and the verdict out of each answer
 lib/seats.ts      each seat's name, job, and color
 lib/sprites.ts    the pixel-art characters, drawn one pixel at a time

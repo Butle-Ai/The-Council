@@ -7,12 +7,14 @@ import PixelAvatar from "@/components/PixelAvatar";
 import type { SeatInfo } from "@/lib/seats";
 import type { SeatScore } from "@/lib/parse";
 
-export type Status = "idle" | "waiting" | "thinking" | "done" | "error";
+export type Status = "idle" | "waiting" | "thinking" | "searching" | "writing" | "done" | "error";
 
 const STATUS_TEXT: Record<Status, string> = {
   idle: "",
   waiting: "Waiting for the others",
   thinking: "Thinking",
+  searching: "Searching the web",
+  writing: "Writing (click to watch)",
   done: "Click to read",
   error: "Something went wrong",
 };
@@ -33,7 +35,7 @@ export default function SeatCard({ seat, status, score, selected, onSelect }: Pr
       // A CSS variable, so the stylesheet can color this card with the seat's color.
       style={{ "--seat": seat.color } as React.CSSProperties}
       onClick={onSelect}
-      disabled={status !== "done"}
+      disabled={status !== "done" && status !== "writing"}
       aria-pressed={selected}
     >
       <div className="seat-top">
@@ -55,7 +57,7 @@ export default function SeatCard({ seat, status, score, selected, onSelect }: Pr
       {status !== "idle" && (
         <p className="seat-status">
           {STATUS_TEXT[status]}
-          {status === "thinking" && <span className="dots" aria-hidden />}
+          {(status === "thinking" || status === "searching" || status === "writing") && <span className="dots" aria-hidden />}
         </p>
       )}
     </button>

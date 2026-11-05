@@ -272,7 +272,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   box-shadow: 0 0 0 1px var(--seat), 0 12px 30px color-mix(in srgb, var(--seat) 25%, transparent);
   background: linear-gradient(180deg, color-mix(in srgb, var(--seat) 12%, var(--panel)), var(--panel));
 }
-.seat-card.is-thinking { animation: glow 1.6s ease-in-out infinite; }
+.seat-card.is-thinking, .seat-card.is-searching, .seat-card.is-writing { animation: glow 1.6s ease-in-out infinite; }
+.seat-card.is-writing { cursor: pointer; }
 .seat-card.is-error { border-color: var(--bad); }
 .seat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
 .seat-icon {

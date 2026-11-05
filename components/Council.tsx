@@ -41,16 +41,52 @@ const SAMPLE_IDEAS: Record<Mode, string[]> = {
   ],
 };
 
-// Small helper: POST some JSON and return the reply, or throw the error message.
-async function postJson(url: string, body: unknown) {
+// Send a request and read the LIVE answer as it streams in (see lib/live.ts).
+// onSearching / onText fire while the seat works; it returns the final text.
+async function streamSeat(
+  url: string,
+  body: unknown,
+  onSearching: () => void,
+  onText: (textSoFar: string) => void,
+): Promise<string> {
   const res = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
-  return data;
+  if (!res.ok || !res.body) {
+    // Errors before the stream starts (like a missing idea) come back as JSON.
+    const raw = await res.text();
+    let message = `Request failed (${res.status}).`;
+    try {
+      message = JSON.parse(raw).error ?? message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let soFar = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop()!; // keep any half-finished line for next time
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const msg = JSON.parse(line);
+      if (msg.type === "searching") onSearching();
+      if (msg.type === "text") {
+        soFar += msg.text;
+        onText(soFar);
+      }
+      if (msg.type === "error") throw new Error(msg.error);
+      if (msg.type === "done") return msg.text as string;
+    }
+  }
+  throw new Error("The connection dropped before the council finished. Try again.");
 }
 
 export default function Council() {
@@ -87,12 +123,20 @@ export default function Council() {
       const answers = await Promise.all(
         ARGUING.map(async (seat) => {
           try {
-            const data = await postJson("/api/seat", { idea, seat, mode });
-            setSeatText(seat, data.argument);
+            const text = await streamSeat(
+              "/api/seat",
+              { idea, seat, mode },
+              () => setSeatStatus(seat, "searching"),
+              (soFar) => {
+                setSeatText(seat, soFar);
+                setSeatStatus(seat, "writing");
+                // Show the first seat that starts writing, so there's something to watch.
+                setSelected((cur) => cur ?? seat);
+              },
+            );
+            setSeatText(seat, text);
             setSeatStatus(seat, "done");
-            // Show the first answer that comes back, so there's something to read.
-            setSelected((cur) => cur ?? seat);
-            return data.argument as string;
+            return text;
           } catch (err) {
             setSeatStatus(seat, "error");
             throw err;
@@ -103,13 +147,21 @@ export default function Council() {
       // Round 2: the Judge reads all three and decides.
       setSeatStatus("judge", "thinking");
       const [believer, skeptic, investor] = answers;
-      const data = await postJson("/api/judge", { idea, mode, arguments: { believer, skeptic, investor } });
-      setSeatText("judge", data.verdict);
-      setSeatStatus("judge", "done");
       setSelected("judge");
+      const verdictText = await streamSeat(
+        "/api/judge",
+        { idea, mode, arguments: { believer, skeptic, investor } },
+        () => setSeatStatus("judge", "searching"),
+        (soFar) => {
+          setSeatText("judge", soFar);
+          setSeatStatus("judge", "writing");
+        },
+      );
+      setSeatText("judge", verdictText);
+      setSeatStatus("judge", "done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
-      setStatus((prev) => (prev.judge === "thinking" ? { ...prev, judge: "error" } : prev));
+      setStatus((prev) => (["thinking", "searching", "writing"].includes(prev.judge) ? { ...prev, judge: "error" } : prev));
     } finally {
       setRunning(false);
     }
@@ -127,7 +179,9 @@ export default function Council() {
     setSelected("judge");
   }
 
-  const verdict = texts.judge ? parseVerdict(texts.judge) : null;
+  // Only show the verdict banner once the Judge has completely finished.
+  const verdict = texts.judge && status.judge === "done" ? parseVerdict(texts.judge) : null;
+  const busy = (s: Status) => s === "thinking" || s === "searching" || s === "writing";
   const selectedSeat = SEAT_INFO.find((s) => s.id === selected);
   const selectedText = selected ? texts[selected] : undefined;
 
@@ -135,9 +189,9 @@ export default function Council() {
   const phase: Phase =
     status.judge === "done"
       ? "done"
-      : status.judge === "thinking"
+      : busy(status.judge)
         ? "judging"
-        : ARGUING.some((s) => status[s] === "thinking")
+        : ARGUING.some((s) => busy(status[s]))
           ? "arguing"
           : "idle";
 
@@ -198,7 +252,7 @@ export default function Council() {
       <Arena
         phase={phase}
         bottomLine={verdict?.bottomLine ?? null}
-        canOpen={(seat) => status[seat] === "done"}
+        canOpen={(seat) => Boolean(texts[seat])}
         onOpen={openSeat}
       />
 
@@ -220,7 +274,7 @@ export default function Council() {
 
       {running && (
         <p className="muted center">
-          {status.judge === "thinking"
+          {busy(status.judge)
             ? "The Judge is reading all three arguments and checking the facts. About 1-3 more minutes."
             : "The seats are thinking deeply and researching online at the same time. This takes about 2-5 minutes. Click a seat when it's done."}
         </p>

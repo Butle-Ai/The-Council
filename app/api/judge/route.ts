@@ -1,8 +1,9 @@
-// POST /api/judge  { idea, arguments: { believer, skeptic, investor } }  ->  { verdict }
+// POST /api/judge  { idea, mode, arguments: { believer, skeptic, investor } }  ->  a live stream of the verdict
 // The Judge reads all three arguments and gives the final verdict.
 
 import { runJudge, ARGUING_SEATS, type Arguments } from "@/lib/council";
-import { errorResponse, checkIdea, checkMode } from "@/lib/errors";
+import { checkIdea, checkMode } from "@/lib/errors";
+import { liveResponse } from "@/lib/live";
 
 export const maxDuration = 600;
 
@@ -23,10 +24,6 @@ export async function POST(request: Request) {
     }
   }
 
-  try {
-    const verdict = await runJudge(idea, checkMode(body?.mode), args as Arguments);
-    return Response.json({ verdict });
-  } catch (error) {
-    return errorResponse(error);
-  }
+  const mode = checkMode(body?.mode);
+  return liveResponse((onProgress) => runJudge(idea, mode, args as Arguments, onProgress));
 }
