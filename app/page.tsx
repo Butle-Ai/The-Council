@@ -1,27 +1,25 @@
-// The homepage: a title, the four seat cards, and the idea form.
-import IdeaForm from "@/components/IdeaForm";
-
-const seats = [
-  { name: "The Believer", color: "var(--believer)", job: "Builds the best case and finds who would buy it." },
-  { name: "The Skeptic", color: "var(--skeptic)", job: "Attacks the idea and finds why it would fail." },
-  { name: "The Investor", color: "var(--investor)", job: "Checks the numbers: is it worth the money?" },
-  { name: "The Judge", color: "var(--judge)", job: "Weighs everything and delivers the verdict." },
-];
+// The homepage: a header, then the Council (form, seat cards, results).
+import Council from "@/components/Council";
 
 export default function Home() {
   return (
     <main>
-      <h1>The Council</h1>
-      <p className="muted">Four AI advisors debate your business idea. You get a verdict.</p>
-      <div className="seats">
-        {seats.map((s) => (
-          <div key={s.name} className="seat" style={{ borderTopColor: s.color }}>
-            <h3>{s.name}</h3>
-            <p>{s.job}</p>
-          </div>
-        ))}
-      </div>
-      <IdeaForm />
+      <header className="hero">
+        <span className="badge">4 AI advisors · 1 verdict</span>
+        <h1>The Council</h1>
+        <p>
+          Pitch a business idea. A Believer, a Skeptic and an Investor argue about it, and a Judge decides if it&apos;s
+          worth your time.
+        </p>
+      </header>
+      <Council />
+      <footer className="footer">
+        Inspired by Andrej Karpathy&apos;s{" "}
+        <a href="https://github.com/karpathy/llm-council" target="_blank" rel="noreferrer">
+          LLM Council
+        </a>
+        . Powered by Claude.
+      </footer>
     </main>
   );
 }

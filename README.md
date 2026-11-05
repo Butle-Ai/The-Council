@@ -25,7 +25,7 @@ We're building this one step at a time.
 - [x] **Step 4: The full council.** Believer, Skeptic and Investor run at the same time, then the Judge.
 - [ ] **Step 5: Rebuttal round.** Each seat reads the others and fires back before the Judge rules.
 - [ ] **Step 6: Live streaming.** Watch each seat "type" its argument live instead of waiting.
-- [ ] **Step 7: Verdict card.** A clean scorecard with the bottom line and next steps.
+- [x] **Step 7: Redesign and verdict card.** New look: clickable seat cards with scores, a big verdict banner, and a "See an example" button that loads a saved council (no API credits used).
 - [ ] **Step 8: Save and share.** Keep past verdicts and share a link to one.
 - [ ] **Step 9: Deploy.** Put it online (Vercel) so anyone can use it.
 
@@ -57,8 +57,11 @@ Change `"believer"` to `"skeptic"` or `"investor"` to hear from a different seat
 app/              the website (pages and styles)
 app/api/seat/     backend route: takes an idea, returns one seat's argument
 app/api/judge/    backend route: takes all three arguments, returns the verdict
-components/       pieces of the page (IdeaForm = the text box and the answer)
+components/       pieces of the page (Council, SeatCard, VerdictBanner)
 lib/council.ts    the code that talks to Claude
 lib/errors.ts     turns errors into plain-English messages
+lib/parse.ts      pulls scores and the verdict out of each answer
+lib/seats.ts      each seat's name, color, and icon
+lib/example.json  a saved council run (Grey Hair Academy) for the demo button
 prompts/          the instructions that give each seat its personality
 ```
