@@ -34,8 +34,19 @@ function loadPrompt(seat: Seat): string {
   return fs.readFileSync(file, "utf8");
 }
 
-// Send an idea to one seat and get back its written argument.
-export async function runSeat(seat: Seat, idea: string): Promise<string> {
+// The note every seat gets: we only give the idea, nothing about the founder.
+const IDEA_ONLY_NOTE =
+  "No budget, timeline, location, or founder details are given. Judge the idea on its own merits, " +
+  "assuming a typical small founding team with normal access to funding. Do not ask for more details.";
+
+// The three seats that argue first. The Judge goes last.
+export const ARGUING_SEATS = ["believer", "skeptic", "investor"] as const;
+export type ArguingSeat = (typeof ARGUING_SEATS)[number];
+export type Arguments = Record<ArguingSeat, string>;
+
+// The one function that actually calls Claude. Every seat uses it:
+// "seat" picks the system prompt, "userMessage" is what the seat is asked.
+async function askClaude(seat: Seat, userMessage: string): Promise<string> {
   const response = await getClient().beta.messages.create({
     model: MODEL,
     max_tokens: 16000,
@@ -47,17 +58,7 @@ export async function runSeat(seat: Seat, idea: string): Promise<string> {
     fallbacks: "default",
     // The system prompt tells Claude which seat it's playing.
     system: loadPrompt(seat),
-    // The user message is the idea itself.
-    messages: [
-      {
-        role: "user",
-        content:
-          `Business idea: ${idea}\n\n` +
-          "No budget, timeline, location, or founder details are given. Judge the idea on its own merits, " +
-          "assuming a typical small founding team with normal access to funding. Do not ask for more details.\n\n" +
-          "Give your full council argument as described in your role.",
-      },
-    ],
+    messages: [{ role: "user", content: userMessage }],
   });
 
   if (response.stop_reason === "refusal") {
@@ -69,4 +70,25 @@ export async function runSeat(seat: Seat, idea: string): Promise<string> {
     .filter((block) => block.type === "text")
     .map((block) => block.text)
     .join("\n");
+}
+
+// Opening argument from the Believer, Skeptic, or Investor.
+// Each one only sees the idea, NOT the others' work, so nobody is biased.
+export async function runSeat(seat: ArguingSeat, idea: string): Promise<string> {
+  return askClaude(
+    seat,
+    `Business idea: ${idea}\n\n${IDEA_ONLY_NOTE}\n\nGive your full council argument as described in your role.`,
+  );
+}
+
+// The Judge reads all three arguments and gives the verdict.
+export async function runJudge(idea: string, args: Arguments): Promise<string> {
+  return askClaude(
+    "judge",
+    `Business idea: ${idea}\n\n${IDEA_ONLY_NOTE}\n\n` +
+      `=== BELIEVER ===\n${args.believer}\n\n` +
+      `=== SKEPTIC ===\n${args.skeptic}\n\n` +
+      `=== INVESTOR ===\n${args.investor}\n\n` +
+      "Deliver your full verdict as described in your role.",
+  );
 }

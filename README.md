@@ -22,7 +22,7 @@ We're building this one step at a time.
 - [x] **Step 1: Skeleton.** Next.js app, homepage, and the four seat prompts in `prompts/`.
 - [x] **Step 2: First AI call.** A backend route that sends an idea to one seat (the Believer) using the Claude API.
 - [x] **Step 3: The idea form.** A text box on the homepage that sends your idea and shows the answer.
-- [ ] **Step 4: The full council.** Believer, Skeptic and Investor run at the same time, then the Judge.
+- [x] **Step 4: The full council.** Believer, Skeptic and Investor run at the same time, then the Judge.
 - [ ] **Step 5: Rebuttal round.** Each seat reads the others and fires back before the Judge rules.
 - [ ] **Step 6: Live streaming.** Watch each seat "type" its argument live instead of waiting.
 - [ ] **Step 7: Verdict card.** A clean scorecard with the bottom line and next steps.
@@ -56,7 +56,9 @@ Change `"believer"` to `"skeptic"` or `"investor"` to hear from a different seat
 ```
 app/              the website (pages and styles)
 app/api/seat/     backend route: takes an idea, returns one seat's argument
+app/api/judge/    backend route: takes all three arguments, returns the verdict
 components/       pieces of the page (IdeaForm = the text box and the answer)
 lib/council.ts    the code that talks to Claude
+lib/errors.ts     turns errors into plain-English messages
 prompts/          the instructions that give each seat its personality
 ```

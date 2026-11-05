@@ -60,3 +60,20 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .answer table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
 .answer th, .answer td { border: 1px solid #2c313c; padding: 6px 10px; text-align: left; }
 .answer a { color: var(--judge); }
+
+/* Step 4: progress chips and foldable arguments */
+.idea-form button { align-self: flex-start; }
+.progress { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.chip {
+  border: 2px solid;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.chip-thinking { color: var(--text); animation: pulse 1.2s ease-in-out infinite; }
+.chip-done { color: var(--text); font-weight: 600; }
+.chip-error { color: var(--skeptic); }
+@keyframes pulse { 50% { opacity: 0.45; } }
+details.answer summary { cursor: pointer; font-size: 1.3rem; font-weight: 700; }
+details.answer[open] summary { margin-bottom: 12px; }
