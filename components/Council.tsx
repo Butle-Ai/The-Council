@@ -8,7 +8,7 @@
 import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Gavel, PlayCircle } from "lucide-react";
+import { Gavel, PlayCircle, Zap, Rocket } from "lucide-react";
 import SeatCard, { type Status } from "@/components/SeatCard";
 import VerdictBanner from "@/components/VerdictBanner";
 import Arena, { type Phase } from "@/components/Arena";
@@ -20,11 +20,26 @@ import example from "@/lib/example.json";
 const ARGUING: SeatId[] = ["believer", "skeptic", "investor"];
 const ALL_IDLE: Record<SeatId, Status> = { believer: "idle", skeptic: "idle", investor: "idle", judge: "idle" };
 
-const SAMPLE_IDEAS = [
-  "A subscription box of local snacks for people who moved abroad",
-  "An app that matches dog owners with neighbors who can walk their dog",
-  "AI tutor that helps high school students study for tests using their own notes",
+type Mode = "side-hustle" | "venture";
+
+// The two modes you can pick. Each one makes the seats judge the idea differently.
+const MODES: { id: Mode; label: string; blurb: string; Icon: typeof Zap }[] = [
+  { id: "side-hustle", label: "Side hustle", blurb: "Quick money, weeks to start, part time", Icon: Zap },
+  { id: "venture", label: "Long-term venture", blurb: "Years of work, big upside, maybe investors", Icon: Rocket },
 ];
+
+const SAMPLE_IDEAS: Record<Mode, string[]> = {
+  "side-hustle": [
+    "Reselling thrifted vintage clothes on Depop",
+    "Washing and detailing cars in my neighborhood on weekends",
+    "Making custom Canva templates and selling them on Etsy",
+  ],
+  venture: [
+    "A subscription box of local snacks for people who moved abroad",
+    "An app that matches dog owners with neighbors who can walk their dog",
+    "AI tutor that helps high school students study for tests using their own notes",
+  ],
+};
 
 // Small helper: POST some JSON and return the reply, or throw the error message.
 async function postJson(url: string, body: unknown) {
@@ -40,6 +55,7 @@ async function postJson(url: string, body: unknown) {
 
 export default function Council() {
   const [idea, setIdea] = useState("");
+  const [mode, setMode] = useState<Mode>("side-hustle");
   const [running, setRunning] = useState(false);
   const [status, setStatus] = useState<Record<SeatId, Status>>(ALL_IDLE);
   const [texts, setTexts] = useState<Partial<Record<SeatId, string>>>({});
@@ -71,7 +87,7 @@ export default function Council() {
       const answers = await Promise.all(
         ARGUING.map(async (seat) => {
           try {
-            const data = await postJson("/api/seat", { idea, seat });
+            const data = await postJson("/api/seat", { idea, seat, mode });
             setSeatText(seat, data.argument);
             setSeatStatus(seat, "done");
             // Show the first answer that comes back, so there's something to read.
@@ -87,7 +103,7 @@ export default function Council() {
       // Round 2: the Judge reads all three and decides.
       setSeatStatus("judge", "thinking");
       const [believer, skeptic, investor] = answers;
-      const data = await postJson("/api/judge", { idea, arguments: { believer, skeptic, investor } });
+      const data = await postJson("/api/judge", { idea, mode, arguments: { believer, skeptic, investor } });
       setSeatText("judge", data.verdict);
       setSeatStatus("judge", "done");
       setSelected("judge");
@@ -103,6 +119,7 @@ export default function Council() {
   // without spending API credits. Great for demos.
   function loadExample() {
     setIdea(example.idea);
+    setMode("venture"); // the saved example was judged as a long-term venture
     setIsExample(true);
     setError(null);
     setTexts({ believer: example.believer, skeptic: example.skeptic, investor: example.investor, judge: example.judge });
@@ -127,7 +144,28 @@ export default function Council() {
   return (
     <>
       <form onSubmit={handleSubmit} className="idea-card">
-        <label htmlFor="idea">What&apos;s your business idea?</label>
+        <span className="field-label">What kind of idea is it?</span>
+        <div className="mode-toggle" role="radiogroup" aria-label="Idea type">
+          {MODES.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              role="radio"
+              aria-checked={mode === m.id}
+              className={`mode-option ${mode === m.id ? "is-active" : ""}`}
+              onClick={() => setMode(m.id)}
+              disabled={running}
+            >
+              <m.Icon size={20} />
+              <span>
+                <strong>{m.label}</strong>
+                <small>{m.blurb}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <label htmlFor="idea">What&apos;s your idea?</label>
         <textarea
           id="idea"
           value={idea}
@@ -139,7 +177,7 @@ export default function Council() {
         />
         <div className="samples">
           <span>Try:</span>
-          {SAMPLE_IDEAS.map((s) => (
+          {SAMPLE_IDEAS[mode].map((s) => (
             <button key={s} type="button" className="sample" onClick={() => setIdea(s)} disabled={running}>
               {s}
             </button>
@@ -183,8 +221,8 @@ export default function Council() {
       {running && (
         <p className="muted center">
           {status.judge === "thinking"
-            ? "The Judge is reading all three arguments. About 1 more minute."
-            : "Three seats are arguing at the same time. This takes about 1-2 minutes. Click a seat when it's done."}
+            ? "The Judge is reading all three arguments and checking the facts. About 1-3 more minutes."
+            : "The seats are thinking deeply and researching online at the same time. This takes about 2-5 minutes. Click a seat when it's done."}
         </p>
       )}
 

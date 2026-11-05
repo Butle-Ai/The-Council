@@ -15,6 +15,17 @@ This is a remix of [LLM Council](https://github.com/karpathy/llm-council) by And
 
 **What's different here:** instead of the same job for every model, each seat has a specific *role* (believer, skeptic, investor, judge). There's also a rebuttal round where the seats respond to each other before the Judge decides. The whole thing is built for one use: testing whether a business idea is worth pursuing.
 
+## Two modes
+
+- **Side hustle**: quick, part-time ways to make money. Judged on time to first dollar, startup cost, hourly rate, and effort.
+- **Long-term venture**: businesses you'd spend years on. Judged on market size, defensibility, unit economics, and timing.
+
+Each mode has its own instructions in `prompts/modes/`, added on top of each seat's personality.
+
+## How the seats think
+
+Every seat uses deep thinking (`xhigh` effort) and can search the web for real competitors, prices, and data. Each prompt pushes them to reason from first principles: the core insight, what must be true, analogies from other industries, a pre-mortem, and the one number that decides if the idea works.
+
 ## Build plan
 
 We're building this one step at a time.
@@ -65,4 +76,5 @@ lib/seats.ts      each seat's name, job, and color
 lib/sprites.ts    the pixel-art characters, drawn one pixel at a time
 lib/example.json  a saved council run (Grey Hair Academy) for the demo button
 prompts/          the instructions that give each seat its personality
+prompts/modes/    extra rules for side hustle vs long-term venture
 ```

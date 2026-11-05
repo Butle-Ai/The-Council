@@ -108,7 +108,35 @@ a { color: var(--accent); }
   gap: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
-.idea-card label { font-family: var(--pixel); font-size: 1.05rem; }
+.idea-card label, .field-label { font-family: var(--pixel); font-size: 1.05rem; }
+
+/* Side hustle / long-term venture switch */
+.mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+@media (max-width: 560px) { .mode-toggle { grid-template-columns: 1fr; } }
+.mode-option {
+  font: inherit;
+  color: var(--muted);
+  text-align: left;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.mode-option strong { display: block; font-family: var(--pixel); font-weight: 400; color: var(--text); }
+.mode-option small { display: block; font-size: 0.82rem; }
+.mode-option:hover:not(:disabled) { border-color: var(--muted); }
+.mode-option.is-active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  box-shadow: 0 4px 0 #6e50d6;
+}
+.mode-option.is-active svg { color: var(--accent); }
 textarea {
   font: inherit;
   color: var(--text);

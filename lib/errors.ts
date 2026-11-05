@@ -31,3 +31,8 @@ export function checkIdea(idea: unknown): string | Response {
   if (text.length > 2000) return Response.json({ error: "Keep the idea under 2000 characters." }, { status: 400 });
   return text;
 }
+
+// Shared check for the mode. Anything unexpected falls back to "venture".
+export function checkMode(mode: unknown): "side-hustle" | "venture" {
+  return mode === "side-hustle" ? "side-hustle" : "venture";
+}

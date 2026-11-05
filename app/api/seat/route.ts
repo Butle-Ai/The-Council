@@ -3,10 +3,10 @@
 // where the API key stays secret. The website calls this 3 times at once.
 
 import { runSeat, ARGUING_SEATS, type ArguingSeat } from "@/lib/council";
-import { errorResponse, checkIdea } from "@/lib/errors";
+import { errorResponse, checkIdea, checkMode } from "@/lib/errors";
 
-// Give Claude up to 5 minutes; a careful answer can take a while.
-export const maxDuration = 300;
+// Give Claude up to 10 minutes; deep thinking plus web research takes a while.
+export const maxDuration = 600;
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const argument = await runSeat(seat as ArguingSeat, idea);
+    const argument = await runSeat(seat as ArguingSeat, idea, checkMode(body?.mode));
     return Response.json({ seat, argument });
   } catch (error) {
     return errorResponse(error);
