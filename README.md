@@ -20,7 +20,7 @@ This is a remix of [LLM Council](https://github.com/karpathy/llm-council) by And
 We're building this one step at a time.
 
 - [x] **Step 1: Skeleton.** Next.js app, homepage, and the four seat prompts in `prompts/`.
-- [ ] **Step 2: First AI call.** A backend route that sends an idea to one seat (the Believer) using the Claude API.
+- [x] **Step 2: First AI call.** A backend route that sends an idea to one seat (the Believer) using the Claude API.
 - [ ] **Step 3: The idea form.** A text box on the homepage that sends your idea and shows the answer.
 - [ ] **Step 4: The full council.** Believer, Skeptic and Investor run at the same time, then the Judge.
 - [ ] **Step 5: Rebuttal round.** Each seat reads the others and fires back before the Judge rules.
@@ -41,9 +41,21 @@ npm run dev
 
 Open http://localhost:3000.
 
+### Test one seat from the terminal (Step 2)
+
+With `npm run dev` running, open a second terminal and run:
+
+```bash
+curl -X POST http://localhost:3000/api/seat -H "content-type: application/json" -d '{"seat":"believer","idea":"an app that matches dog owners with neighbors who can walk their dog"}'
+```
+
+Change `"believer"` to `"skeptic"` or `"investor"` to hear from a different seat. It takes about 30-90 seconds.
+
 ## Project layout
 
 ```
-app/          the website (pages, styles, and later the backend routes)
-prompts/      the instructions that give each seat its personality
+app/              the website (pages and styles)
+app/api/seat/     backend route: takes an idea, returns one seat's argument
+lib/council.ts    the code that talks to Claude
+prompts/          the instructions that give each seat its personality
 ```
