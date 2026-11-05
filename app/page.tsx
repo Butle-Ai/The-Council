@@ -1,5 +1,5 @@
-// Step 1: a static homepage that introduces the four seats.
-// In Step 3 this becomes a form where you type an idea.
+// The homepage: a title, the four seat cards, and the idea form.
+import IdeaForm from "@/components/IdeaForm";
 
 const seats = [
   { name: "The Believer", color: "var(--believer)", job: "Builds the best case and finds who would buy it." },
@@ -21,6 +21,7 @@ export default function Home() {
           </div>
         ))}
       </div>
+      <IdeaForm />
     </main>
   );
 }

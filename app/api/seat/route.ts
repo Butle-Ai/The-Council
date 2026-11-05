@@ -3,7 +3,7 @@
 // That matters because your API key must stay secret on the server.
 
 import Anthropic from "@anthropic-ai/sdk";
-import { runSeat, SEATS, type Seat } from "@/lib/council";
+import { runSeat, SEATS, MissingKeyError, type Seat } from "@/lib/council";
 
 // Give Claude up to 5 minutes; a careful answer can take a while.
 export const maxDuration = 300;
@@ -29,11 +29,17 @@ export async function POST(request: Request) {
     return Response.json({ seat, argument });
   } catch (error) {
     // Turn confusing errors into plain messages.
+    if (error instanceof MissingKeyError) {
+      return Response.json({ error: error.message }, { status: 500 });
+    }
     if (error instanceof Anthropic.AuthenticationError) {
-      return Response.json({ error: "Your API key is missing or wrong. Check .env.local." }, { status: 500 });
+      return Response.json({ error: "Your API key was rejected. Make sure the full key is in .env.local." }, { status: 500 });
     }
     if (error instanceof Anthropic.RateLimitError) {
       return Response.json({ error: "Too many requests. Wait a minute and try again." }, { status: 429 });
+    }
+    if (error instanceof Anthropic.BadRequestError && /credit balance/i.test(error.message)) {
+      return Response.json({ error: "Your Anthropic account is out of credits. Add some in the console." }, { status: 402 });
     }
     if (error instanceof Anthropic.APIError) {
       return Response.json({ error: `Claude API error (${error.status}): ${error.message}` }, { status: 502 });

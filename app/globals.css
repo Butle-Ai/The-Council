@@ -22,3 +22,41 @@ h1 { font-size: 2.4rem; margin: 0 0 8px; }
 .seat { background: var(--card); border-radius: 12px; padding: 16px; border-top: 4px solid; }
 .seat h3 { margin: 0 0 6px; }
 .seat p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+/* Step 3: the idea form and the answer */
+.idea-section { margin-top: 40px; }
+.idea-form { display: flex; flex-direction: column; gap: 10px; }
+.idea-form label { font-weight: 600; }
+textarea, select, button {
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid #2c313c;
+  border-radius: 10px;
+  padding: 12px;
+}
+textarea { resize: vertical; }
+.form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.form-row select { flex: 1; min-width: 180px; }
+button {
+  background: var(--judge);
+  color: #0f1115;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.error { color: var(--skeptic); }
+.answer {
+  margin-top: 24px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px 24px;
+  border-top: 4px solid;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.answer h2 { margin-top: 0; }
+.answer table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
+.answer th, .answer td { border: 1px solid #2c313c; padding: 6px 10px; text-align: left; }
+.answer a { color: var(--judge); }

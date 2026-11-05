@@ -12,9 +12,21 @@ export type Seat = (typeof SEATS)[number];
 // Which Claude model every seat uses.
 const MODEL = "claude-opus-5-5";
 
-// The client reads your key from the ANTHROPIC_API_KEY environment variable
-// (in .env.local when running on your computer). The key never goes in the code.
-const client = new Anthropic();
+// Create the Claude client. It reads your key from the ANTHROPIC_API_KEY
+// environment variable (in .env.local). The key never goes in the code.
+// We check for the key first so a missing key gives a plain-English error.
+function getClient(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new MissingKeyError();
+  }
+  return new Anthropic();
+}
+
+export class MissingKeyError extends Error {
+  constructor() {
+    super("No API key found. Add ANTHROPIC_API_KEY to .env.local and restart the app.");
+  }
+}
 
 // Read a seat's instructions (its "system prompt") from the prompts/ folder.
 function loadPrompt(seat: Seat): string {
@@ -24,7 +36,7 @@ function loadPrompt(seat: Seat): string {
 
 // Send an idea to one seat and get back its written argument.
 export async function runSeat(seat: Seat, idea: string): Promise<string> {
-  const response = await client.beta.messages.create({
+  const response = await getClient().beta.messages.create({
     model: MODEL,
     max_tokens: 16000,
     // How hard Claude thinks before answering. "high" = careful, thorough answers.
