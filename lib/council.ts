@@ -60,7 +60,11 @@ async function askClaude(seat: Seat, mode: Mode, userMessage: string): Promise<s
   // Web search runs on Anthropic's servers. If Claude does a lot of searching,
   // the API pauses ("pause_turn") and we send it back so it can keep going.
   for (let round = 0; round < 4; round++) {
-    const response = await client.beta.messages.create({
+    // We use streaming (.stream + .finalMessage) because deep-thinking answers
+    // can take a long time, and the SDK refuses long non-streaming requests.
+    // finalMessage() just waits for the whole answer, like a normal request.
+    const response = await client.beta.messages
+      .stream({
       model: MODEL,
       max_tokens: 32000,
       // How hard Claude thinks before answering. "xhigh" = very deep thinking
@@ -75,7 +79,8 @@ async function askClaude(seat: Seat, mode: Mode, userMessage: string): Promise<s
       // The system prompt tells Claude which seat it's playing and which mode.
       system: systemPrompt(seat, mode),
       messages,
-    });
+    })
+      .finalMessage();
 
     if (response.stop_reason === "refusal") {
       throw new Error("Claude declined to answer this idea.");
