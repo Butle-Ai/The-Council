@@ -108,7 +108,7 @@ a { color: var(--accent); }
   gap: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
-.idea-card label, .field-label { font-family: var(--pixel); font-size: 1.05rem; }
+.idea-card > label, .access label, .field-label { font-family: var(--pixel); font-size: 1.05rem; }
 
 /* Side hustle / long-term venture switch */
 .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
@@ -149,6 +149,19 @@ textarea {
   transition: border-color 0.15s;
 }
 textarea:focus { border-color: var(--accent); }
+.access { display: flex; flex-direction: column; gap: 6px; }
+.access input {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  max-width: 340px;
+  outline: none;
+}
+.access input:focus { border-color: var(--accent); }
+.access small { color: var(--muted); }
 .samples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.85rem; }
 .samples > span { color: var(--muted); }
 .sample {

@@ -40,6 +40,15 @@ We're building this one step at a time.
 - [ ] **Step 8: Save and share.** Keep past verdicts and share a link to one.
 - [ ] **Step 9: Deploy.** Put it online (Vercel) so anyone can use it.
 
+## Put it online (Vercel)
+
+1. Sign in at [vercel.com](https://vercel.com) with GitHub and import this repo.
+2. Add these environment variables before deploying:
+   - `ANTHROPIC_API_KEY`: your Anthropic API key
+   - `ACCESS_CODE`: a password people must type to run a live council (protects your API credits). Visitors without it can still click **See an example**.
+   - `COUNCIL_EFFORT` (optional): `high` if councils time out; defaults to `xhigh`.
+3. Click **Deploy**.
+
 ## Run it locally
 
 You need [Node.js](https://nodejs.org) 20 or newer.
@@ -71,6 +80,7 @@ app/api/judge/    backend route: takes all three arguments, returns the verdict
 components/       pieces of the page (Council, Arena, SeatCard, VerdictBanner, PixelAvatar)
 lib/council.ts    the code that talks to Claude
 lib/errors.ts     turns errors into plain-English messages
+lib/access.ts     the optional access code that protects your API credits online
 lib/live.ts       streams each seat's answer to the browser live, with keep-alive pings
 lib/parse.ts      pulls scores and the verdict out of each answer
 lib/seats.ts      each seat's name, job, and color

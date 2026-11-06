@@ -4,10 +4,16 @@
 import { runJudge, ARGUING_SEATS, type Arguments } from "@/lib/council";
 import { checkIdea, checkMode } from "@/lib/errors";
 import { liveResponse } from "@/lib/live";
+import { checkAccess } from "@/lib/access";
 
-export const maxDuration = 600;
+// 300 seconds (5 minutes) is the most Vercel's free plan allows.
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
+  // Stop strangers from spending your API credits (see lib/access.ts).
+  const denied = checkAccess(request);
+  if (denied) return denied;
+
   const body = await request.json().catch(() => null);
 
   const idea = checkIdea(body?.idea);

@@ -5,11 +5,17 @@
 import { runSeat, ARGUING_SEATS, type ArguingSeat } from "@/lib/council";
 import { checkIdea, checkMode } from "@/lib/errors";
 import { liveResponse } from "@/lib/live";
+import { checkAccess } from "@/lib/access";
 
-// Give Claude up to 10 minutes; deep thinking plus web research takes a while.
-export const maxDuration = 600;
+// How long the server may work on one request, in seconds. 300 (5 minutes)
+// is the most Vercel's free plan allows.
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
+  // Stop strangers from spending your API credits (see lib/access.ts).
+  const denied = checkAccess(request);
+  if (denied) return denied;
+
   const body = await request.json().catch(() => null);
 
   // Check the input before spending money on an AI call.

@@ -5,7 +5,7 @@
 //      (3 calls to /api/seat in parallel), so no seat sees the others' work.
 //   2. When all three are done, their arguments go to the Judge (/api/judge).
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Gavel, PlayCircle, Zap, Rocket } from "lucide-react";
@@ -45,13 +45,14 @@ const SAMPLE_IDEAS: Record<Mode, string[]> = {
 // onSearching / onText fire while the seat works; it returns the final text.
 async function streamSeat(
   url: string,
+  accessCode: string,
   body: unknown,
   onSearching: () => void,
   onText: (textSoFar: string) => void,
 ): Promise<string> {
   const res = await fetch(url, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "x-access-code": accessCode },
     body: JSON.stringify(body),
   });
   if (!res.ok || !res.body) {
@@ -97,6 +98,26 @@ export default function Council() {
   const [texts, setTexts] = useState<Partial<Record<SeatId, string>>>({});
   const [selected, setSelected] = useState<SeatId | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Access code: only needed on the public site (see lib/access.ts).
+  const [needsCode, setNeedsCode] = useState(false);
+  const [accessCode, setAccessCode] = useState("");
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((c) => setNeedsCode(Boolean(c.needsCode)))
+      .catch(() => {});
+    try {
+      setAccessCode(localStorage.getItem("council-access-code") ?? "");
+    } catch {}
+  }, []);
+
+  function saveCode(code: string) {
+    setAccessCode(code);
+    try {
+      localStorage.setItem("council-access-code", code);
+    } catch {}
+  }
   const [isExample, setIsExample] = useState(false);
   const readerRef = useRef<HTMLElement>(null);
 
@@ -125,6 +146,7 @@ export default function Council() {
           try {
             const text = await streamSeat(
               "/api/seat",
+              accessCode,
               { idea, seat, mode },
               () => setSeatStatus(seat, "searching"),
               (soFar) => {
@@ -150,6 +172,7 @@ export default function Council() {
       setSelected("judge");
       const verdictText = await streamSeat(
         "/api/judge",
+        accessCode,
         { idea, mode, arguments: { believer, skeptic, investor } },
         () => setSeatStatus("judge", "searching"),
         (soFar) => {
@@ -237,6 +260,20 @@ export default function Council() {
             </button>
           ))}
         </div>
+        {needsCode && (
+          <div className="access">
+            <label htmlFor="access">Access code</label>
+            <input
+              id="access"
+              type="password"
+              value={accessCode}
+              onChange={(e) => saveCode(e.target.value)}
+              placeholder="Needed to run a live council"
+              autoComplete="off"
+            />
+            <small>No code? Click &quot;See an example&quot; to see a full council for free.</small>
+          </div>
+        )}
         <div className="idea-actions">
           <button type="submit" className="primary" disabled={running || !idea.trim()}>
             <Gavel size={18} /> {running ? "The council is debating..." : "Convene the council"}

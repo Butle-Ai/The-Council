@@ -12,6 +12,12 @@ export type Seat = (typeof SEATS)[number];
 // Which Claude model every seat uses.
 const MODEL = "claude-opus-5-5";
 
+// How deeply each seat thinks: "low", "medium", "high", "xhigh", or "max".
+const EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"] as const;
+const EFFORT = (EFFORT_LEVELS as readonly string[]).includes(process.env.COUNCIL_EFFORT ?? "")
+  ? (process.env.COUNCIL_EFFORT as (typeof EFFORT_LEVELS)[number])
+  : "xhigh";
+
 // Create the Claude client. It reads your key from the ANTHROPIC_API_KEY
 // environment variable (in .env.local). The key never goes in the code.
 // We check for the key first so a missing key gives a plain-English error.
@@ -71,8 +77,9 @@ async function askClaude(seat: Seat, mode: Mode, userMessage: string, onProgress
       model: MODEL,
       max_tokens: 32000,
       // How hard Claude thinks before answering. "xhigh" = very deep thinking
-      // (slower and costs more, but much better reasoning).
-      output_config: { effort: "xhigh" },
+      // (slower and costs more, but much better reasoning). You can change it
+      // without touching code by setting COUNCIL_EFFORT (e.g. to "high").
+      output_config: { effort: EFFORT },
       // Let each seat look things up on the web: real competitors, prices, data.
       tools: [{ type: "web_search_20260209", name: "web_search", max_uses: seat === "judge" ? 3 : 6 }],
       // If Claude ever declines a request, the API automatically retries it on
